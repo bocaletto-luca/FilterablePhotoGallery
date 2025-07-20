@@ -4,11 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Filterable Photo Gallery | Bocaletto Luca</title>
-  <meta name="description" content="A responsive, modern photo gallery with CSS filter presets and an in-page lightbox. Select filters in real time.">
-  <meta name="keywords" content="photo gallery, CSS filters, lightbox, grayscale, sepia, saturate, responsive">
+  <meta name="description" content="A responsive, professional photo gallery with real-time CSS filters and an in-page lightbox. Choose from over a dozen preset filters.">
+  <meta name="keywords" content="photo gallery, CSS filters, grayscale, sepia, saturate, blur, invert, brightness, contrast, hue-rotate, drop-shadow, lightbox, responsive">
   <link rel="canonical" href="https://github.com/bocaletto-luca/FilterablePhotoGallery">
   <meta property="og:title" content="Filterable Photo Gallery">
-  <meta property="og:description" content="Select CSS filter presets in real time and view images in an in-page lightbox.">
+  <meta property="og:description" content="Choose from dozens of CSS filter presets and view images in a sleek lightbox.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://github.com/bocaletto-luca/FilterablePhotoGallery">
   <link href="https://fonts.googleapis.com/css?family=Inter:400,500&display=swap" rel="stylesheet">
@@ -31,8 +31,7 @@
       font-family: 'Inter', sans-serif;
       background: var(--bg);
       color: var(--text);
-      display: flex; flex-direction: column;
-      min-height: 100vh;
+      display: flex; flex-direction: column; min-height: 100vh;
     }
     header {
       background: var(--header-bg);
@@ -41,27 +40,28 @@
       padding: var(--gap);
     }
     header h1 {
-      font-size: 1.75rem; margin: 0;
+      margin: 0; font-size: 1.75rem; font-weight: 500;
     }
     main {
       flex: 1;
       max-width: 1000px; width: 100%;
       margin: var(--gap) auto; padding: 0 var(--gap);
     }
-    /* filter controls */
+    /* filter presets */
     #filter-controls {
       display: flex; flex-wrap: wrap;
       gap: var(--gap);
       justify-content: center;
       margin-bottom: var(--gap);
     }
-    #filter-controls select {
+    #preset-select {
       padding: .5rem 1rem;
       font: inherit;
       border: 1px solid var(--border);
       border-radius: var(--radius);
+      background: #fff;
     }
-    /* gallery */
+    /* gallery grid */
     #gallery {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(160px,1fr));
@@ -72,7 +72,7 @@
       background: var(--card);
       border-radius: var(--radius);
       overflow: hidden;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
       cursor: pointer;
     }
     .g-item img {
@@ -85,17 +85,15 @@
       position: absolute;
       bottom: 0; left: 0; right: 0;
       background: rgba(0,0,0,0.6);
-      color: #fff;
-      font-size: .85rem;
-      padding: .25rem;
-      text-align: center;
+      color: #fff; font-size: .85rem;
+      padding: .3rem; text-align: center;
     }
     /* lightbox */
     #lightbox {
       position: fixed; top:0; left:0;
       width:100%; height:100%;
       background: rgba(0,0,0,0.85);
-      display: flex; align-items: center; justify-content: center;
+      display: flex; align-items:center; justify-content:center;
       visibility: hidden; opacity: 0;
       transition: opacity .3s;
       z-index: 1000;
@@ -113,17 +111,15 @@
       filter: var(--filter);
     }
     #lb-caption {
-      margin-top: .5rem;
-      color: #fff;
-      font-size: 1rem;
+      margin-top: .5rem; color: #fff; font-size: 1rem;
     }
     .lb-nav {
       position: absolute; top:50%; left:0; right:0;
-      display: flex; justify-content: space-between;
+      display:flex; justify-content: space-between;
       transform: translateY(-50%);
     }
     .lb-nav button {
-      background: rgba(0,0,0,0.5);
+      background: rgba(0,0,0,0.6);
       border: none; color: #fff;
       font-size: 2rem; padding: .5rem;
       cursor: pointer; border-radius: var(--radius);
@@ -143,8 +139,7 @@
       padding: .75rem;
     }
     footer a {
-      color: #fff;
-      text-decoration: underline;
+      color: #fff; text-decoration: underline;
     }
     @media(max-width:600px){
       #filter-controls { flex-direction: column; align-items: stretch; }
@@ -159,13 +154,22 @@
 
   <main>
     <div id="filter-controls">
-      <label for="preset-select" class="visually-hidden">Choose filter preset</label>
+      <label for="preset-select" class="visually-hidden">Choose filter</label>
       <select id="preset-select">
         <option value="none">None</option>
         <option value="grayscale(100%)">Grayscale</option>
         <option value="sepia(100%)">Sepia</option>
         <option value="saturate(150%)">Saturate</option>
         <option value="invert(100%)">Invert</option>
+        <option value="brightness(130%)">Brightness</option>
+        <option value="contrast(150%)">Contrast</option>
+        <option value="hue-rotate(90deg)">Hue Rotate</option>
+        <option value="blur(2px)">Blur</option>
+        <option value="opacity(50%)">Opacity</option>
+        <option value="drop-shadow(0 0 8px rgba(0,0,0,0.5))">Drop Shadow</option>
+        <option value="sepia(60%) saturate(200%)">Warm Vintage</option>
+        <option value="contrast(120%) brightness(110%)">Pop</option>
+        <option value="hue-rotate(180deg) invert(100%)">X-Ray</option>
       </select>
     </div>
 
@@ -192,7 +196,7 @@
   </footer>
 
   <script>
-    // image set
+    // sample images
     const images = [
       {url:'https://picsum.photos/id/1015/600/400', caption:'Mountain'},
       {url:'https://picsum.photos/id/1024/600/400', caption:'Dog'},
@@ -202,10 +206,10 @@
       {url:'https://picsum.photos/id/1021/600/400', caption:'Lake'},
       {url:'https://picsum.photos/id/1050/600/400', caption:'Desert'},
       {url:'https://picsum.photos/id/1069/600/400', caption:'City'},
-      {url:'https://picsum.photos/id/1074/600/400', caption:'Bridge'},
+      {url:'https://picsum.photos/id/1074/600/400', caption:'Bridge'}
     ];
 
-    // DOM refs
+    // refs
     const gallery      = document.getElementById('gallery');
     const presetSelect = document.getElementById('preset-select');
     const lightbox     = document.getElementById('lightbox');
@@ -217,7 +221,7 @@
 
     let currentIndex = 0;
 
-    // render thumbnails
+    // render grid
     function renderGallery() {
       gallery.innerHTML = '';
       images.forEach((img, i) => {
@@ -231,7 +235,7 @@
       });
     }
 
-    // apply CSS filter
+    // apply filter
     presetSelect.onchange = () => {
       document.documentElement.style.setProperty('--filter', presetSelect.value);
     };
@@ -269,7 +273,7 @@
       if (e.key === 'ArrowRight') nextImage();
     });
 
-    // init
+    // initialize
     renderGallery();
   </script>
 </body>
