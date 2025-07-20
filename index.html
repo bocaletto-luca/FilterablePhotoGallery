@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Filterable Photo Gallery | Bocaletto Luca</title>
+  <meta name="description" content="A modern, responsive photo gallery with CSS filters, lightbox navigation, presets and favorites stored in localStorage.">
+  <meta name="keywords" content="photo gallery, CSS filters, lightbox, responsive, JavaScript, localStorage">
+  <meta name="author" content="Bocaletto Luca">
+  <link rel="canonical" href="https://github.com/bocaletto-luca/FilterablePhotoGallery">
+  <meta property="og:title" content="Filterable Photo Gallery">
+  <meta property="og:description" content="A modern, responsive photo gallery with CSS filters, lightbox navigation, presets and favorites.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://github.com/bocaletto-luca/FilterablePhotoGallery">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ImageGallery",
+    "name": "Filterable Photo Gallery",
+    "author": { "@type": "Person", "name": "Bocaletto Luca" },
+    "description": "Responsive gallery with CSS filters, lightbox, presets and favorites."
+  }
+  </script>
+  <link href="https://fonts.googleapis.com/css?family=Inter:400,500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f9fafb;
+      --card: #ffffff;
+      --primary: #2563eb;
+      --text: #1f2937;
+      --border: #e5e7eb;
+      --radius: 6px;
+      --gap: 1rem;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.4;
+      display: flex; flex-direction: column;
+      align-items: center;
+      padding: var(--gap);
+    }
+    header {
+      width: 100%; max-width: 1000px;
+      text-align: center;
+      margin-bottom: var(--gap);
+    }
+    header h1 {
+      font-size: 1.75rem; font-weight: 500;
+    }
+    /* Controls */
+    #controls {
+      display: flex; flex-wrap: wrap;
+      gap: var(--gap);
+      justify-content: center;
+      margin-bottom: var(--gap);
+    }
+    #controls select,
+    #controls input[type="text"],
+    #controls button {
+      padding: .5rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font: inherit;
+    }
+    #controls button {
+      background: var(--primary);
+      color: #fff;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    #controls button:hover {
+      background: #1e40af;
+    }
+    /* Gallery Grid */
+    #gallery {
+      width: 100%; max-width: 1000px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px,1fr));
+      gap: var(--gap);
+    }
+    .g-item {
+      position: relative;
+      overflow: hidden;
+      border-radius: var(--radius);
+      background: var(--card);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      cursor: pointer;
+    }
+    .g-item img {
+      width: 100%; height: auto;
+      display: block;
+      filter: var(--current-filter, none);
+      transition: filter .3s;
+    }
+    .g-item .caption {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      background: rgba(0,0,0,0.6);
+      color: #fff; font-size: .85rem;
+      padding: .3rem; text-align: center;
+    }
+    .g-item .fav-star {
+      position: absolute;
+      top: 6px; right: 6px;
+      font-size: 1.2rem;
+      color: rgba(255,255,255,0.8);
+      text-shadow: 0 0 2px #000;
+      cursor: pointer;
+      transition: color .2s;
+    }
+    .g-item .fav-star.fav {
+      color: #facc15;
+    }
+    /* Lightbox */
+    #lightbox {
+      position: fixed; top:0; left:0; width:100%; height:100%;
+      background: rgba(0,0,0,0.8);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1000; visibility: hidden; opacity: 0;
+      transition: opacity .3s;
+    }
+    #lightbox.open {
+      visibility: visible; opacity: 1;
+    }
+    #lb-content {
+      position: relative; max-width: 90%; max-height: 90%;
+      text-align: center;
+    }
+    #lb-img {
+      max-width: 100%; max-height: 80vh;
+      filter: var(--current-filter, none);
+    }
+    #lb-caption {
+      margin: .5rem 0; color: #fff;
+    }
+    .lb-nav {
+      position: absolute; top: 50%; width: 100%;
+      display: flex; justify-content: space-between;
+      transform: translateY(-50%);
+    }
+    .lb-nav button {
+      background: rgba(0,0,0,0.4);
+      border: none; color: #fff;
+      font-size: 1.5rem; padding: .5rem;
+      cursor: pointer; border-radius: var(--radius);
+    }
+    #lb-close {
+      position: absolute; top: -10px; right: -10px;
+      background: var(--primary); color: #fff;
+      border: none; border-radius: 50%;
+      width: 32px; height: 32px;
+      font-size: 1.2rem; cursor: pointer;
+    }
+    #lb-fav {
+      position: absolute; bottom: -40px; right: 50%;
+      transform: translateX(50%);
+      background: var(--primary); color: #fff;
+      border: none; padding: .3rem .6rem;
+      border-radius: var(--radius);
+      cursor: pointer;
+    }
+    /* Footer */
+    footer {
+      margin-top: var(--gap);
+      font-size: .8rem;
+      text-align: center;
+    }
+    footer a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+    footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Filterable Photo Gallery</h1>
+  </header>
+
+  <div id="controls">
+    <select id="preset-select"></select>
+    <button id="show-fav">Show Favorites</button>
+    <input type="text" id="preset-name" placeholder="New preset name">
+    <input type="text" id="preset-filter" placeholder="CSS filter e.g. sepia(1)">
+    <button id="add-preset">Add Preset</button>
+  </div>
+
+  <div id="gallery"></div>
+
+  <div id="lightbox">
+    <div id="lb-content">
+      <button id="lb-close">&times;</button>
+      <img id="lb-img" src="" alt="">
+      <div id="lb-caption"></div>
+      <div class="lb-nav">
+        <button id="lb-prev">&larr;</button>
+        <button id="lb-next">&rarr;</button>
+      </div>
+      <button id="lb-fav">★</button>
+    </div>
+  </div>
+
+  <footer>
+    © 2025 Bocaletto Luca — 
+    <a href="https://github.com/bocaletto-luca/FilterablePhotoGallery" target="_blank">GitHub</a> — 
+    Licensed GPLv3
+  </footer>
+
+  <script>
+    // Sample images array
+    const images = [
+      {url:'https://picsum.photos/id/1015/600/400', caption:'Mountain'},
+      {url:'https://picsum.photos/id/1024/600/400', caption:'Dog'},
+      {url:'https://picsum.photos/id/1025/600/400', caption:'Kitten'},
+      {url:'https://picsum.photos/id/1035/600/400', caption:'Beach'},
+      {url:'https://picsum.photos/id/1042/600/400', caption:'Forest'},
+      {url:'https://picsum.photos/id/1021/600/400', caption:'Lake'},
+      {url:'https://picsum.photos/id/1050/600/400', caption:'Desert'},
+      {url:'https://picsum.photos/id/1069/600/400', caption:'City'},
+      {url:'https://picsum.photos/id/1074/600/400', caption:'Bridge'}
+    ];
+
+    // Load favorites and presets
+    let favorites = JSON.parse(localStorage.getItem('favs')||'[]');
+    let presets = JSON.parse(localStorage.getItem('presets')||'[]');
+    const defaultPresets = [
+      {name:'None', filter:''},
+      {name:'Grayscale', filter:'grayscale(1)'},
+      {name:'Sepia', filter:'sepia(1)'},
+      {name:'Saturate', filter:'saturate(1.5)'}
+    ];
+    if (!presets.length) {
+      presets = defaultPresets;
+      localStorage.setItem('presets', JSON.stringify(presets));
+    }
+
+    // Elements
+    const gallery       = document.getElementById('gallery');
+    const presetSelect  = document.getElementById('preset-select');
+    const showFavBtn    = document.getElementById('show-fav');
+    const presetNameIn  = document.getElementById('preset-name');
+    const presetFilterIn= document.getElementById('preset-filter');
+    const addPresetBtn  = document.getElementById('add-preset');
+    const lightbox      = document.getElementById('lightbox');
+    const lbImg         = document.getElementById('lb-img');
+    const lbCaption     = document.getElementById('lb-caption');
+    const lbClose       = document.getElementById('lb-close');
+    const lbPrev        = document.getElementById('lb-prev');
+    const lbNext        = document.getElementById('lb-next');
+    const lbFavBtn      = document.getElementById('lb-fav');
+
+    let currentFilter = '';
+    let showingFavs   = false;
+    let currentIndex  = 0;
+
+    // Initialize
+    function init() {
+      renderPresets();
+      renderGallery();
+      bindControls();
+    }
+
+    // Render preset options
+    function renderPresets() {
+      presetSelect.innerHTML = '';
+      presets.forEach((p,i) => {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = p.name;
+        presetSelect.append(opt);
+      });
+      presetSelect.value = 0;
+      applyFilter(presets[0].filter);
+    }
+
+    // Apply CSS filter globally
+    function applyFilter(filter) {
+      currentFilter = filter;
+      document.documentElement.style.setProperty('--current-filter', filter);
+    }
+
+    // Render gallery thumbnails
+    function renderGallery() {
+      gallery.innerHTML = '';
+      images.forEach((img,i) => {
+        const isFav = favorites.includes(i);
+        if (showingFavs && !isFav) return;
+        const div = document.createElement('div');
+        div.className = 'g-item';
+        div.dataset.index = i;
+        const el = document.createElement('img');
+        el.src = img.url;
+        el.alt = img.caption;
+        const cap = document.createElement('div');
+        cap.className = 'caption';
+        cap.textContent = img.caption;
+        const star = document.createElement('div');
+        star.className = 'fav-star' + (isFav?' fav':'');
+        star.textContent = '★';
+        star.onclick = e => {
+          e.stopPropagation();
+          toggleFav(i);
+        };
+        div.append(el, cap, star);
+        div.onclick = () => openLightbox(i);
+        gallery.append(div);
+      });
+    }
+
+    // Toggle favorite
+    function toggleFav(index) {
+      const pos = favorites.indexOf(index);
+      if (pos>=0) favorites.splice(pos,1);
+      else favorites.push(index);
+      localStorage.setItem('favs', JSON.stringify(favorites));
+      renderGallery();
+      updateLightboxFav();
+    }
+
+    // Open lightbox
+    function openLightbox(idx) {
+      currentIndex = idx;
+      showImage(idx);
+      lightbox.classList.add('open');
+    }
+    function closeLightbox() {
+      lightbox.classList.remove('open');
+    }
+    function prevImage() {
+      currentIndex = (currentIndex-1+images.length)%images.length;
+      showImage(currentIndex);
+    }
+    function nextImage() {
+      currentIndex = (currentIndex+1)%images.length;
+      showImage(currentIndex);
+    }
+    function showImage(idx) {
+      const img = images[idx];
+      lbImg.src = img.url;
+      lbCaption.textContent = img.caption;
+      updateLightboxFav();
+      applyFilter(currentFilter);
+    }
+    function updateLightboxFav() {
+      lbFavBtn.textContent = favorites.includes(currentIndex)? '★':'☆';
+    }
+    function toggleLightboxFav() {
+      toggleFav(currentIndex);
+    }
+
+    // Bind event handlers
+    function bindControls() {
+      presetSelect.onchange = () => {
+        const p = presets[presetSelect.value];
+        applyFilter(p.filter);
+      };
+      showFavBtn.onclick = () => {
+        showingFavs = !showingFavs;
+        showFavBtn.textContent = showingFavs? 'Show All':'Show Favorites';
+        renderGallery();
+      };
+      addPresetBtn.onclick = () => {
+        const name = presetNameIn.value.trim();
+        const filter = presetFilterIn.value.trim();
+        if (!name||!filter) return;
+        presets.push({name,filter});
+        localStorage.setItem('presets', JSON.stringify(presets));
+        presetNameIn.value = '';
+        presetFilterIn.value = '';
+        renderPresets();
+      };
+      lbClose.onclick = closeLightbox;
+      lbPrev.onclick  = prevImage;
+      lbNext.onclick  = nextImage;
+      lbFavBtn.onclick= toggleLightboxFav;
+      document.addEventListener('keydown', e => {
+        if (!lightbox.classList.contains('open')) return;
+        if (e.key==='Escape') closeLightbox();
+        if (e.key==='ArrowLeft') prevImage();
+        if (e.key==='ArrowRight') nextImage();
+      });
+      document.getElementById('export-btn')?.addEventListener('click',() => {
+        // optional: implement export favorites/presets
+      });
+    }
+
+    // Kickoff
+    init();
+  </script>
+</body>
+</html>
