@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Filterable Photo Gallery | Bocaletto Luca</title>
-  <meta name="description" content="Photo gallery responsive con filtri CSS, lightbox, preset e preferiti in LocalStorage.">
-  <meta name="keywords" content="galleria foto, CSS filters, lightbox, responsive, preset, preferiti, JSON">
+  <meta name="description" content="Responsive photo gallery with CSS filters, lightbox navigation, presets and favorites stored in LocalStorage, plus JSON import/export.">
+  <meta name="keywords" content="photo gallery, CSS filters, lightbox, presets, favorites, import, export, localStorage">
   <link rel="canonical" href="https://github.com/bocaletto-luca/FilterablePhotoGallery">
   <link href="https://fonts.googleapis.com/css?family=Inter:400,500,600&display=swap" rel="stylesheet">
   <style>
@@ -22,78 +22,182 @@
       --gap: 1rem;
       --filter: none;
     }
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);
-      display:flex;flex-direction:column;min-height:100vh;}
-    header{background:var(--header-bg);color:#fff;text-align:center;padding:var(--gap);}
-    header h1{font-size:1.75rem;margin:0;}
-    main{flex:1;max-width:1000px;width:100%;margin:var(--gap) auto;padding:0 var(--gap);}
-    #controls{display:flex;flex-wrap:wrap;gap:var(--gap);justify-content:center;margin-bottom:var(--gap);}
-    #controls select,#controls input[type="text"],#controls button{
-      padding:.5rem .75rem;border:1px solid var(--border);border-radius:var(--radius);
-      font:inherit;}
-    #controls button{background:var(--accent);color:#fff;cursor:pointer;transition:background .2s;}
-    #controls button:hover{background:var(--accent-dark);}
-    #gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:var(--gap);}
-    .g-item{position:relative;background:var(--card);border-radius:var(--radius);
-      overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.1);cursor:pointer;}
-    .g-item img{width:100%;height:auto;display:block;filter:var(--filter);
-      transition:filter .3s;}
-    .caption{position:absolute;bottom:0;left:0;right:0;
-      background:rgba(0,0,0,0.6);color:#fff;font-size:.85rem;
-      padding:.25rem;text-align:center;}
-    .fav-star{position:absolute;top:.5rem;right:.5rem;
-      font-size:1.25rem;color:rgba(255,255,255,0.8);
-      text-shadow:0 0 2px #000;cursor:pointer;transition:color .2s;}
-    .fav-star.fav{color:#facc15;}
-    #lightbox{position:fixed;top:0;left:0;width:100%;height:100%;
-      background:rgba(0,0,0,0.85);display:flex;align-items:center;
-      justify-content:center;visibility:hidden;opacity:0;transition:opacity .3s;
-      z-index:1000;}
-    #lightbox.open{visibility:visible;opacity:1;}
-    #lb-content{position:relative;max-width:90%;max-height:90%;text-align:center;}
-    #lb-img{max-width:100%;max-height:80vh;filter:var(--filter);}
-    #lb-caption{margin-top:.5rem;color:#fff;font-size:1rem;}
-    .lb-nav{position:absolute;top:50%;left:0;right:0;
-      display:flex;justify-content:space-between;transform:translateY(-50%);}
-    .lb-nav button{background:rgba(0,0,0,0.5);border:none;color:#fff;
-      font-size:2rem;padding:.5rem;cursor:pointer;border-radius:var(--radius);}
-    #lb-close{position:absolute;top:-1rem;right:-1rem;
-      background:var(--accent);color:#fff;border:none;border-radius:50%;
-      width:2.5rem;height:2.5rem;font-size:1.5rem;cursor:pointer;}
-    #lb-fav{position:absolute;bottom:-2rem;left:50%;transform:translateX(-50%);
-      background:var(--accent);color:#fff;border:none;padding:.4rem .8rem;
-      border-radius:var(--radius);cursor:pointer;}
-    #io{display:flex;justify-content:center;gap:var(--gap);margin:var(--gap) 0;}
-    #io button{background:var(--accent);color:#fff;border:none;padding:.5rem 1rem;
-      border-radius:var(--radius);cursor:pointer;transition:background .2s;}
-    #io button:hover{background:var(--accent-dark);}
-    #file-input{display:none;}
-    footer{background:var(--footer-bg);color:#fff;text-align:center;padding:.75rem;}
-    footer a{color:#fff;text-decoration:underline;}
-    @media(max-width:600px){#controls{flex-direction:column;align-items:stretch}}
-    /* HELP OVERLAY */
+    *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+    body {
+      font-family:'Inter',sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      display:flex; flex-direction:column;
+      min-height:100vh;
+    }
+    header {
+      background:var(--header-bg);
+      color:#fff;
+      text-align:center;
+      padding:var(--gap);
+    }
+    header h1 { margin:0; font-size:1.75rem; }
+    main {
+      flex:1;
+      max-width:1000px;
+      width:100%;
+      margin:var(--gap) auto;
+      padding:0 var(--gap);
+    }
+    /* Controls */
+    #controls {
+      display:flex; flex-wrap:wrap;
+      gap:var(--gap);
+      justify-content:center;
+      margin-bottom:var(--gap);
+    }
+    #controls select,
+    #controls input[type="text"],
+    #controls button {
+      padding:.5rem .75rem;
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      font:inherit;
+    }
+    #controls button {
+      background:var(--accent);
+      color:#fff;
+      cursor:pointer;
+      transition:background .2s;
+    }
+    #controls button:hover { background:var(--accent-dark); }
+    /* Gallery */
+    #gallery {
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+      gap:var(--gap);
+    }
+    .g-item {
+      position:relative;
+      background:var(--card);
+      border-radius:var(--radius);
+      overflow:hidden;
+      box-shadow:0 1px 3px rgba(0,0,0,0.1);
+      cursor:pointer;
+    }
+    .g-item img {
+      width:100%;
+      height:auto;
+      display:block;
+      filter:var(--filter);
+      transition:filter .3s;
+    }
+    .caption {
+      position:absolute;
+      bottom:0; left:0; right:0;
+      background:rgba(0,0,0,0.6);
+      color:#fff;
+      font-size:.85rem;
+      padding:.25rem;
+      text-align:center;
+    }
+    .fav-star {
+      position:absolute;
+      top:.5rem; right:.5rem;
+      font-size:1.25rem;
+      color:rgba(255,255,255,0.8);
+      text-shadow:0 0 2px #000;
+      cursor:pointer;
+      transition:color .2s;
+    }
+    .fav-star.fav { color:#facc15; }
+    /* Lightbox */
+    #lightbox {
+      position:fixed; top:0; left:0; width:100%; height:100%;
+      background:rgba(0,0,0,0.85);
+      display:flex; align-items:center; justify-content:center;
+      visibility:hidden; opacity:0; transition:opacity .3s;
+      z-index:1000;
+    }
+    #lightbox.open { visibility:visible; opacity:1; }
+    #lb-content {
+      position:relative;
+      max-width:90%; max-height:90%;
+      text-align:center;
+    }
+    #lb-img {
+      max-width:100%; max-height:80vh;
+      filter:var(--filter);
+    }
+    #lb-caption {
+      margin-top:.5rem;
+      color:#fff;
+      font-size:1rem;
+    }
+    .lb-nav {
+      position:absolute; top:50%; left:0; right:0;
+      display:flex; justify-content:space-between;
+      transform:translateY(-50%);
+    }
+    .lb-nav button {
+      background:rgba(0,0,0,0.5);
+      border:none; color:#fff;
+      font-size:2rem; padding:.5rem;
+      cursor:pointer; border-radius:var(--radius);
+    }
+    #lb-close {
+      position:absolute; top:-1rem; right:-1rem;
+      background:var(--accent); color:#fff;
+      border:none; border-radius:50%;
+      width:2.5rem; height:2.5rem;
+      font-size:1.5rem; cursor:pointer;
+    }
+    #lb-fav {
+      position:absolute; bottom:-2rem; left:50%;
+      transform:translateX(-50%);
+      background:var(--accent); color:#fff;
+      border:none; padding:.4rem .8rem;
+      border-radius:var(--radius); cursor:pointer;
+    }
+    /* Import/Export JSON */
+    #io {
+      display:flex; justify-content:center; gap:var(--gap);
+      margin:var(--gap) 0;
+    }
+    #io button {
+      background:var(--accent); color:#fff;
+      border:none; padding:.5rem 1rem;
+      border-radius:var(--radius); cursor:pointer;
+      transition:background .2s;
+    }
+    #io button:hover { background:var(--accent-dark); }
+    #file-input { display:none; }
+    /* Help Overlay */
     #help-overlay {
-      position: fixed; top:0; left:0; width:100%; height:100%;
-      background: rgba(0,0,0,0.8); color:#fff;
-      display: none; flex-direction: column; align-items:center;
-      justify-content: center; padding:2rem; z-index:2000;
-      text-align:left; overflow-y:auto;
+      position:fixed; top:0; left:0; width:100%; height:100%;
+      background:rgba(0,0,0,0.8); color:#fff;
+      display:none; align-items:center; justify-content:center;
+      padding:2rem; z-index:2000; overflow:auto;
     }
     #help-overlay.visible { display:flex; }
     #help-content {
-      background: var(--card); color: var(--text);
-      border-radius: var(--radius); padding:2rem;
-      max-width:800px; width:100%; max-height:90vh; overflow-y:auto;
+      background:var(--card); color:var(--text);
+      border-radius:var(--radius); padding:2rem;
+      max-width:800px; width:100%; max-height:90vh;
+      overflow-y:auto; text-align:left;
     }
     #help-content h2 { margin-top:0; }
     #help-close {
       margin-top:1rem; padding:.5rem 1rem;
-      background: var(--accent); color:#fff;
+      background:var(--accent); color:#fff;
       border:none; border-radius:var(--radius);
       cursor:pointer; transition:background .2s;
     }
-    #help-close:hover { background: var(--accent-dark); }
+    #help-close:hover { background:var(--accent-dark); }
+    /* Footer */
+    footer {
+      background:var(--footer-bg);
+      color:#fff; text-align:center; padding:.75rem;
+    }
+    footer a { color:#fff; text-decoration:underline; }
+    @media(max-width:600px){
+      #controls { flex-direction:column; align-items:stretch; }
+    }
   </style>
 </head>
 <body>
@@ -105,15 +209,15 @@
   <main role="main">
     <div id="controls">
       <button id="help-btn">Help</button>
-      <select id="filter-select" aria-label="Preset filtri"></select>
+      <select id="filter-select" aria-label="Choose filter preset"></select>
       <button id="show-all">Show All</button>
       <button id="show-fav">Show Favorites</button>
-      <input type="text" id="preset-name" placeholder="Nome preset">
-      <input type="text" id="preset-filter" placeholder="Filtro CSS es: sepia(1)">
-      <button id="add-preset">Aggiungi Preset</button>
+      <input type="text" id="preset-name" placeholder="Preset name">
+      <input type="text" id="preset-filter" placeholder="CSS filter, e.g. sepia(1)">
+      <button id="add-preset">Add Preset</button>
     </div>
 
-    <section id="gallery" aria-label="Galleria fotografica"></section>
+    <section id="gallery" aria-label="Photo gallery"></section>
 
     <div id="io">
       <button id="export-json">Export JSON</button>
@@ -124,26 +228,25 @@
 
   <div id="help-overlay">
     <div id="help-content">
-      <h2>Guida all'uso</h2>
-      <p><strong>Preset Filtri:</strong> seleziona un filtro CSS (es. bianco/nero, seppia, saturazione).</p>
-      <p><strong>Show All / Show Favorites:</strong> mostra tutte le foto o solo quelle segnate come preferite.</p>
-      <p><strong>Aggiungi Preset:</strong> inserisci un nome e una stringa CSS filter, poi clicca per salvare.</p>
-      <p><strong>Galleria:</strong> clicca su una miniatura per aprire il lightbox.</p>
-      <p><strong>Lightbox:</strong> naviga con ◀ ▶, chiudi con ✕. Clicca ★ per aggiungere/rimuovere dai preferiti.</p>
-      <p><strong>Export/Import JSON:</strong> salva o carica i tuoi <em>favorites</em> e <em>presets</em> in un file JSON.</p>
-      <button id="help-close">Chiudi Guida</button>
+      <h2>How It Works</h2>
+      <p><strong>Filter Presets:</strong> choose a preset to apply CSS filters (e.g. grayscale, sepia, saturation).</p>
+      <p><strong>Show All / Show Favorites:</strong> toggle between all images or just your favorites.</p>
+      <p><strong>Add Preset:</strong> enter a name and a valid CSS <code>filter</code> string (e.g. <code>invert(1)</code>), then click Add.</p>
+      <p><strong>Gallery:</strong> click a thumbnail to open the lightbox with navigation arrows and favorite toggle.</p>
+      <p><strong>Lightbox:</strong> use ◀ ▶ or arrow keys to navigate, ✕ or Esc to close, ★ to mark/unmark favorites.</p>
+      <p><strong>Export/Import JSON:</strong> save your <em>presets</em> and <em>favorites</em> to a file, or load them back.</p>
+      <button id="help-close">Close Help</button>
     </div>
   </div>
 
-  <!-- Lightbox markup (invisibile finché non aperto) -->
-  <div id="lightbox">
+  <div id="lightbox" role="dialog" aria-modal="true">
     <div id="lb-content">
-      <button id="lb-close" aria-label="Chiudi">&times;</button>
+      <button id="lb-close" aria-label="Close">&times;</button>
       <img id="lb-img" src="" alt="">
       <div id="lb-caption"></div>
       <div class="lb-nav">
-        <button id="lb-prev" aria-label="Precedente">&larr;</button>
-        <button id="lb-next" aria-label="Successivo">&rarr;</button>
+        <button id="lb-prev" aria-label="Previous">&#8592;</button>
+        <button id="lb-next" aria-label="Next">&#8594;</button>
       </div>
       <button id="lb-fav" aria-label="Toggle favorite">★</button>
     </div>
@@ -151,13 +254,11 @@
 
   <footer role="contentinfo">
     © 2025 Bocaletto Luca — 
-    <a href="https://github.com/bocaletto-luca/FilterablePhotoGallery" target="_blank" rel="noopener">
-      GitHub
-    </a> — Licensed GPLv3
+    <a href="https://github.com/bocaletto-luca/FilterablePhotoGallery" target="_blank" rel="noopener">GitHub</a> — 
+    Licensed GPLv3
   </footer>
 
   <script>
-    // immagini di esempio
     const images = [
       {url:'https://picsum.photos/id/1015/600/400',caption:'Mountain'},
       {url:'https://picsum.photos/id/1024/600/400',caption:'Dog'},
@@ -170,167 +271,181 @@
       {url:'https://picsum.photos/id/1074/600/400',caption:'Bridge'}
     ];
 
-    // stato
     let favorites = JSON.parse(localStorage.getItem('favs')||'[]');
     let presets   = JSON.parse(localStorage.getItem('presets')||'[]');
-    if(!presets.length){
+    if (!presets.length) {
       presets = [
-        {name:'None',filter:'none'},
-        {name:'Grayscale',filter:'grayscale(1)'},
-        {name:'Sepia',filter:'sepia(1)'},
-        {name:'Saturate',filter:'saturate(1.5)'}
+        {name:'None',      filter:'none'},
+        {name:'Grayscale', filter:'grayscale(1)'},
+        {name:'Sepia',     filter:'sepia(1)'},
+        {name:'Saturate',  filter:'saturate(1.5)'}
       ];
-      localStorage.setItem('presets',JSON.stringify(presets));
+      localStorage.setItem('presets', JSON.stringify(presets));
     }
     let currentFilter = 'none';
     let showingFavs   = false;
     let currentIndex  = 0;
 
-    // elementi
-    const gallery      = document.getElementById('gallery');
-    const filterSelect = document.getElementById('filter-select');
-    const showAllBtn   = document.getElementById('show-all');
-    const showFavBtn   = document.getElementById('show-fav');
-    const presetNameIn = document.getElementById('preset-name');
-    const presetFilterIn = document.getElementById('preset-filter');
-    const addPresetBtn = document.getElementById('add-preset');
-    const exportBtn    = document.getElementById('export-json');
-    const importBtn    = document.getElementById('import-json');
-    const fileInput    = document.getElementById('file-input');
-    const helpBtn      = document.getElementById('help-btn');
-    const helpOverlay  = document.getElementById('help-overlay');
-    const helpClose    = document.getElementById('help-close');
-    const lightbox     = document.getElementById('lightbox');
-    const lbImg        = document.getElementById('lb-img');
-    const lbCaption    = document.getElementById('lb-caption');
-    const lbClose      = document.getElementById('lb-close');
-    const lbPrev       = document.getElementById('lb-prev');
-    const lbNext       = document.getElementById('lb-next');
-    const lbFavBtn     = document.getElementById('lb-fav');
+    const gallery       = document.getElementById('gallery');
+    const filterSelect  = document.getElementById('filter-select');
+    const showAllBtn    = document.getElementById('show-all');
+    const showFavBtn    = document.getElementById('show-fav');
+    const presetNameIn  = document.getElementById('preset-name');
+    const presetFilterIn= document.getElementById('preset-filter');
+    const addPresetBtn  = document.getElementById('add-preset');
+    const exportBtn     = document.getElementById('export-json');
+    const importBtn     = document.getElementById('import-json');
+    const fileInput     = document.getElementById('file-input');
+    const helpBtn       = document.getElementById('help-btn');
+    const helpOverlay   = document.getElementById('help-overlay');
+    const helpClose     = document.getElementById('help-close');
+    const lightbox      = document.getElementById('lightbox');
+    const lbImg         = document.getElementById('lb-img');
+    const lbCaption     = document.getElementById('lb-caption');
+    const lbClose       = document.getElementById('lb-close');
+    const lbPrev        = document.getElementById('lb-prev');
+    const lbNext        = document.getElementById('lb-next');
+    const lbFavBtn      = document.getElementById('lb-fav');
 
-    function init(){
+    function init() {
       renderPresets();
       renderGallery();
       bindControls();
     }
 
-    function renderPresets(){
-      filterSelect.innerHTML='';
-      presets.forEach((p,i)=>{
-        const o=document.createElement('option');
-        o.value=i; o.textContent=p.name;
-        filterSelect.append(o);
+    function renderPresets() {
+      filterSelect.innerHTML = '';
+      presets.forEach((p,i) => {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = p.name;
+        filterSelect.append(opt);
       });
-      filterSelect.value=0;
+      filterSelect.value = 0;
       applyFilter(presets[0].filter);
     }
 
-    function applyFilter(f){
-      currentFilter=f||'none';
-      document.documentElement.style.setProperty('--filter',currentFilter);
+    function applyFilter(f) {
+      currentFilter = f || 'none';
+      document.documentElement.style.setProperty('--filter', currentFilter);
     }
 
-    function renderGallery(){
-      gallery.innerHTML='';
-      images.forEach((img,i)=>{
-        if(showingFavs && !favorites.includes(i)) return;
-        const div=document.createElement('div');
-        div.className='g-item'; div.dataset.index=i;
-        const el=document.createElement('img');
-        el.src=img.url; el.alt=img.caption;
-        const cap=document.createElement('div');
-        cap.className='caption'; cap.textContent=img.caption;
-        const star=document.createElement('div');
-        star.className='fav-star'+(favorites.includes(i)?' fav':'');
-        star.textContent='★';
-        star.onclick=e=>{e.stopPropagation();toggleFav(i);};
-        div.append(el,cap,star);
-        div.onclick=()=>openLightbox(i);
+    function renderGallery() {
+      gallery.innerHTML = '';
+      images.forEach((img,i) => {
+        if (showingFavs && !favorites.includes(i)) return;
+        const div = document.createElement('div');
+        div.className = 'g-item';
+        div.dataset.index = i;
+        const el = document.createElement('img');
+        el.src = img.url; el.alt = img.caption;
+        const cap = document.createElement('div');
+        cap.className = 'caption';
+        cap.textContent = img.caption;
+        const star = document.createElement('div');
+        star.className = 'fav-star' + (favorites.includes(i)? ' fav' : '');
+        star.textContent = '★';
+        star.onclick = e => { e.stopPropagation(); toggleFav(i); };
+        div.append(el, cap, star);
+        div.onclick = () => openLightbox(i);
         gallery.append(div);
       });
     }
 
-    function toggleFav(i){
+    function toggleFav(i) {
       const idx = favorites.indexOf(i);
-      if(idx>=0) favorites.splice(idx,1);
+      if (idx >= 0) favorites.splice(idx,1);
       else favorites.push(i);
-      localStorage.setItem('favs',JSON.stringify(favorites));
+      localStorage.setItem('favs', JSON.stringify(favorites));
       renderGallery();
       updateLightboxFav();
     }
 
-    function openLightbox(i){
-      currentIndex=i; showImage(i);
+    function openLightbox(i) {
+      currentIndex = i;
+      showImage(i);
       lightbox.classList.add('open');
     }
-    function closeLightbox(){ lightbox.classList.remove('open'); }
-    function prevImage(){ currentIndex=(currentIndex-1+images.length)%images.length; showImage(currentIndex);}
-    function nextImage(){ currentIndex=(currentIndex+1)%images.length; showImage(currentIndex);}
-    function showImage(i){
-      const img=images[i];
-      lbImg.src=img.url; lbImg.alt=img.caption;
-      lbCaption.textContent=img.caption;
+    function closeLightbox() {
+      lightbox.classList.remove('open');
+    }
+    function prevImage() {
+      currentIndex = (currentIndex - 1 + images.length) % images.length;
+      showImage(currentIndex);
+    }
+    function nextImage() {
+      currentIndex = (currentIndex + 1) % images.length;
+      showImage(currentIndex);
+    }
+    function showImage(i) {
+      const img = images[i];
+      lbImg.src = img.url; lbImg.alt = img.caption;
+      lbCaption.textContent = img.caption;
       updateLightboxFav();
     }
-    function updateLightboxFav(){
-      lbFavBtn.textContent=favorites.includes(currentIndex)?'★':'☆';
+    function updateLightboxFav() {
+      lbFavBtn.textContent = favorites.includes(currentIndex)? '★' : '☆';
     }
-    function toggleLightboxFav(){ toggleFav(currentIndex); }
+    function toggleLightboxFav() {
+      toggleFav(currentIndex);
+    }
 
-    function bindControls(){
-      filterSelect.onchange = ()=>applyFilter(presets[filterSelect.value].filter);
-      showAllBtn.onclick    = ()=>{ showingFavs=false; renderGallery(); };
-      showFavBtn.onclick    = ()=>{ showingFavs=true; renderGallery(); };
-      addPresetBtn.onclick  = ()=>{
-        const n=presetNameIn.value.trim(), f=presetFilterIn.value.trim();
-        if(!n||!f) return;
-        presets.push({name:n,filter:f});
-        localStorage.setItem('presets',JSON.stringify(presets));
-        presetNameIn.value=''; presetFilterIn.value='';
+    function bindControls() {
+      filterSelect.onchange = () => applyFilter(presets[filterSelect.value].filter);
+      showAllBtn.onclick    = () => { showingFavs=false; renderGallery(); };
+      showFavBtn.onclick    = () => { showingFavs=true; renderGallery(); };
+      addPresetBtn.onclick  = () => {
+        const n = presetNameIn.value.trim(), f = presetFilterIn.value.trim();
+        if (!n || !f) return;
+        presets.push({ name:n, filter:f });
+        localStorage.setItem('presets', JSON.stringify(presets));
+        presetNameIn.value = ''; presetFilterIn.value = '';
         renderPresets();
       };
-      exportBtn.onclick = ()=>{
-        const data={presets,favorites};
-        const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-        const url=URL.createObjectURL(blob), a=document.createElement('a');
-        a.href=url; a.download='gallery-data.json'; a.click();
+      exportBtn.onclick = () => {
+        const data = { presets, favorites };
+        const blob = new Blob([JSON.stringify(data,null,2)], { type:'application/json' });
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        a.href = url; a.download = 'gallery-data.json'; a.click();
         URL.revokeObjectURL(url);
       };
-      importBtn.onclick = ()=>fileInput.click();
-      fileInput.onchange = e=>{
-        const f=e.target.files[0]; if(!f) return;
-        const r=new FileReader();
-        r.onload=()=>{
-          try{
-            const d=JSON.parse(r.result);
-            if(d.presets && d.favorites){
-              presets=d.presets;
-              favorites=d.favorites;
-              localStorage.setItem('presets',JSON.stringify(presets));
-              localStorage.setItem('favs',JSON.stringify(favorites));
-              renderPresets();
-              renderGallery();
-            } else alert('Struttura JSON non valida');
-          } catch{
-            alert('Impossibile leggere il JSON');
+      importBtn.onclick = () => fileInput.click();
+      fileInput.onchange = e => {
+        const f = e.target.files[0]; if (!f) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            const d = JSON.parse(reader.result);
+            if (d.presets && d.favorites) {
+              presets = d.presets;
+              favorites = d.favorites;
+              localStorage.setItem('presets', JSON.stringify(presets));
+              localStorage.setItem('favs', JSON.stringify(favorites));
+              renderPresets(); renderGallery();
+            } else {
+              alert('Invalid JSON structure');
+            }
+          } catch {
+            alert('Could not parse JSON');
           }
         };
-        r.readAsText(f);
+        reader.readAsText(f);
       };
-      helpBtn.onclick   = ()=> helpOverlay.classList.add('visible');
-      helpClose.onclick = ()=> helpOverlay.classList.remove('visible');
+      helpBtn.onclick   = () => helpOverlay.classList.add('visible');
+      helpClose.onclick = () => helpOverlay.classList.remove('visible');
       lbClose.onclick   = closeLightbox;
       lbPrev.onclick    = prevImage;
       lbNext.onclick    = nextImage;
       lbFavBtn.onclick  = toggleLightboxFav;
-      document.addEventListener('keydown',e=>{
-        if(helpOverlay.classList.contains('visible') && e.key==='Escape'){
-          helpOverlay.classList.remove('visible'); return;
+      document.addEventListener('keydown', e => {
+        if (helpOverlay.classList.contains('visible') && e.key === 'Escape') {
+          return helpOverlay.classList.remove('visible');
         }
-        if(!lightbox.classList.contains('open')) return;
-        if(e.key==='Escape') closeLightbox();
-        if(e.key==='ArrowLeft') prevImage();
-        if(e.key==='ArrowRight') nextImage();
+        if (!lightbox.classList.contains('open')) return;
+        if (e.key === 'Escape') closeLightbox();
+        if (e.key === 'ArrowLeft') prevImage();
+        if (e.key === 'ArrowRight') nextImage();
       });
     }
 
